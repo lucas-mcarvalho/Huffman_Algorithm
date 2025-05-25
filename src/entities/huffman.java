@@ -51,8 +51,8 @@ public class huffman {
     public static Map<Character, String> buildHuffmanTree(String text) {
         // VARIAVEL DO TIPO MAP PARA ARMAZENAR CARACTERES
         Map<Character, Integer> frequencyMap = new HashMap<>();
-        //USANDO UM FOR PRA PERCORRER A STRING QUEBRADA POR UM VETOR DE CARACTERES
-        //USANDO O  CHARARRAY
+        /*USANDO UM FOR PRA PERCORRER A STRING QUEBRADA POR UM VETOR DE CARACTERES
+          USANDO O  CHARARRAY    E CALCULAMOS A FREQUENCIA ARMAZENANDO NO MAPA*/
         for (char c : text.toCharArray()) {
             //GET ORDEFAULT VERIFICA SE A FUNCAO ESTA NO MAPA, SE ESTIVER SOMA +1
             //CASO CONTRARIO COMECA COM 0
@@ -63,7 +63,7 @@ public class huffman {
         PriorityQueue<huffman> fila = new PriorityQueue<>(Comparator.comparingInt(node -> node.frequency));
 
 
-        //ELE PERCORRE O NO E DEPOIS CRIA UM NOVO NO DE HUFFMAN
+        //ELE PERCORRE O MAPA DE FREQUENCIAS E DEPOIS CRIA UM NOVO NO DE HUFFMAN
         for (Map.Entry<Character, Integer> entry : frequencyMap.entrySet()) {
             /*
              * CRIA UM NOVO OBJETO E DEPOIS ADICIONA ELE NA FILA DE PRIORIDADES
@@ -91,13 +91,15 @@ public class huffman {
         generateCodes(root, "", huffmancode);
         return huffmancode;
     }
-    //METODO PARA RETORNAR UMA STRING DE TEXTO SEM CODIGOS
+
+    //METODO PARA CONSTRUIR A ARVORE E RETORNAR UMA STRING DE TEXTO SEM CODIGOS
     public static huffman buildTree(String text) {
         Map<Character, Integer> frequencyMap = new HashMap<>();
+        //CALCULANDO A FREQUENCIA
         for (char c : text.toCharArray()) {
             frequencyMap.put(c, frequencyMap.getOrDefault(c, 0) + 1);
         }
-
+        //CRIANDO UMA FILA DE PRIORIDADES E ADICIONANDO NELA COM O FOR
         PriorityQueue<huffman> fila = new PriorityQueue<>(Comparator.comparingInt(node -> node.frequency));
         for (Map.Entry<Character, Integer> entry : frequencyMap.entrySet()) {
             fila.add(new huffman(entry.getKey(), entry.getValue()));
@@ -109,16 +111,21 @@ public class huffman {
             huffman merged = new huffman(node1.frequency + node2.frequency, node1, node2);
             fila.add(merged);
         }
+        //RETORNO A RAIZ DA ARVORE
         return fila.poll();
     }
 
-    // Método para codificar o texto original usando os códigos
+    // Método para codificar o texto original usando os códigos,converte o texto em codigo
     public static String encode(String text, Map<Character, String> huffmanCodes) {
 
         //SERVE PARA CONSTRUIR A STRING
         StringBuilder encoder = new StringBuilder();
-        //CONVERTE CADA CARACTERE EM UM ARRAY
+        /*CONVERTE A STRING EM UM ARRAY DE CARACTERES ,DEPOIS
+        PEGA CADA CARACTERE E ASSOCIA A UM VALOR DO MAP E TROCA PELO
+        CODIGO CORRESPONDENTE NO MAP.
+         */
         for (char c : text.toCharArray()) {
+
             //ADICIONA NO ENCODER A STRING E O CODIGO BINARIO CORRESPONDENTE ARMAZENADO NO MAP
             encoder.append(huffmanCodes.get(c));
         }
@@ -137,33 +144,36 @@ public class huffman {
         for (Map.Entry<String, Character> entry : codes.entrySet()) {
             String code = entry.getKey();
             char charactere = entry.getValue();
-            huffman current = root;
+            huffman atual = root;
 
 
-            //DEPOIS DE PERCORRER VERIFICA OS VALORES E INSERE EM CADA BIT
+            //DEPOIS DE PERCORRER VERIFICA OS VALORES E INSERE
             for (char bit : code.toCharArray()) {
-                //SE FOR ZERO E ESQUERDA ,SE NAO E DIREITA
+                //SE FOR ZERO E ESQUERDA VAMOS PRA ESQUERDA
                 if (bit == '0') {
-                    if (current.left == null)
-                        current.left = new huffman();
-                    current = current.left;
+                    //SE O NO NAO EXISTIR CRIAMOS O NOVO ,SIGNIFICA QUE CHEGAMOS NA FOLHA
+                    if (atual.left == null)
+                        atual.left = new huffman();
+                    atual = atual.left;
 
+                    //SE NAO ,FAZEMOS A MESMA COISA ,SO QUE AGORA NA DIREITA
                 } else {
-                    if (current.right == null)
-                        current.right = new huffman();
-                    current = current.right;
+                    if (atual.right == null)
+                        atual.right = new huffman();
+                    atual = atual.right;
                 }
             }
 
-            //DEPOIS DE CRIAR OS NODES ATRIBUI A FOLHA O CARACTERE
-            current.character = charactere;
+            //DEPOIS DE PERCORRER OS NODES ATRIBUI A FOLHA O CARACTERE
+            atual.character = charactere;
         }
+        //RETORNA O ENDERECO DA RAIZ DA ARVORE
         return root;
     }
 
 
 
-    //FUNCAO PRA DECODIFICAR A STRIN BINARIA
+    //FUNCAO PRA DECODIFICAR A STRING BINARIA,PEGA O VALORERS BINARIOS E RETORNA O TEXTO ORIGINAL
     public static  String decode (String encodeText,huffman root){
     StringBuilder builder = new StringBuilder();
     huffman current = root;
@@ -175,12 +185,15 @@ public class huffman {
          */
 
         for(char bit: encodeText.toCharArray()){
+            //SE FOR ZERO  VAMOS PARA A ESQUERDA
             if(bit == '0'){
                     current = current.left;
             }else{
+                //SENAO VAMOS PRA DIREITA
                 current = current.right;
 
             }
+            //QUANDO ENCONTRARMOS A FOLHA ,PARAMOS E ADICIONAMOS NO STRINGBUILDER
             if(current.left == null && current.right == null){
                     builder.append(current.character);
                     current = root;
@@ -196,27 +209,36 @@ public class huffman {
         if(no == null){
             return;
         }
+        //SE CHEGARMOS EM UM NO FOLHA ,ADICIONAMOS 1
         if(no.left ==null && no.right ==null){
             sb.append('1');
             sb.append(no.character);
         }else{
+            //SENAO E FOLHA ADICIONAMOS 0
             sb.append('0');
             sealizerTree(no.left,sb);
             sealizerTree(no.right,sb);
         }
     }
 
+    //FUNCAO PARA DESSERILIZAR A ARVORE, PROCESSO INVERSO DA SERIALIZER.
     public static huffman desserializerTree(String s,int [] index){
-    if(index[0]>=s.length()){
+        //SE CHEGARMOS AO FINAL DA ARVORE RETORNAMOS NULL
+        if(index[0]>=s.length()){
         return  null;
     }
+        //PEGAMOS O CARACTERE ATUAL E INCREMENTAMOS +1
     char flag = s.charAt(index[0]++);
     if(flag == '1'){
+        //PEGAMOS O 1 E INCREMENTAMOS
         char caractere = s.charAt(index[0]++);
         huffman folha  = new huffman();
+        //PEGAMOS O CARACTERE E ATRIBUIMOS A FOLHA
         folha.character = caractere;
         return  folha;
     }else{
+        /*SENAO FOR 1 ,CHAMAMOS RECURSIVAMENTE E CRIAMOS OS NOS DA ESQUERDA
+        * E DIREITA DA ARVORE.*/
         huffman node = new huffman();
         node.left = desserializerTree(s,index);
         node.right = desserializerTree(s,index);
